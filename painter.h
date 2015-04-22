@@ -9,21 +9,23 @@
 namespace yy
 {
 
+class Shape;
+
 class Painter
 {
 public:
     Painter();
     ~Painter();
 
+    void initializeGL(const Shape& shape, const std::string& vert, const std::string& frag);
     void initializeGL(const std::string& vert, const std::string& frag);
-//    void paint(GLuint texID);
     template <typename... Args>
     void paint(Args... args);
 
 private:
-    const int nFloat = 8;
+    int nFloat, nIndex;
     QOpenGLVertexArrayObject vao;
-    QOpenGLBuffer vbo;
+    QOpenGLBuffer vbo, ibo;
     QOpenGLShaderProgram* program;
 
     template <typename Loc, typename Val, typename... Args>
@@ -38,7 +40,7 @@ void Painter::paint(Args... args)
     program->bind();
     setUniform(args...);
     vao.bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, nFloat);
+    glDrawElements(GL_TRIANGLES, nIndex, GL_UNSIGNED_INT, 0);
     vao.release();
     program->release();
 }
