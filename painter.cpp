@@ -21,7 +21,7 @@ Painter::~Painter()
 
 void Painter::initializeGL(const Shape& shape, const std::string &vert, const std::string &frag)
 {
-    program = new QOpenGLShaderProgram;
+    program = new QOpenGLShaderProgram();
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, vert.c_str());
     program->addShaderFromSourceFile(QOpenGLShader::Fragment, frag.c_str());
     program->link();
