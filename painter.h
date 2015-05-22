@@ -5,11 +5,9 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include "shape.h"
 
-namespace yy
-{
-
-class Shape;
+namespace yy {
 
 class Painter
 {
@@ -19,11 +17,12 @@ public:
 
     void initializeGL(const Shape& shape, const std::string& vert, const std::string& frag);
     void initializeGL(const std::string& vert, const std::string& frag);
+    void updateAttributes(const std::vector<Shape::Attribute>& attributes);
     template <typename... Args>
     void paint(Args... args);
 
 private:
-    int nFloat, nIndex;
+    int nIndex;
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo, ibo;
     QOpenGLShaderProgram* program;

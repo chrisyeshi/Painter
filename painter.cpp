@@ -6,7 +6,7 @@ namespace yy
 {
 
 Painter::Painter()
-  : nFloat(0), nIndex(0)
+  : nIndex(0)
   , vbo(QOpenGLBuffer::VertexBuffer)
   , ibo(QOpenGLBuffer::IndexBuffer)
   , program(nullptr)
@@ -30,12 +30,25 @@ void Painter::initializeGL(const Shape& shape, const std::string &vert, const st
     vao.bind();
 
     vbo.create();
+    vbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
     vbo.bind();
-    nFloat = shape.verts.size();
-    vbo.allocate(shape.verts.data(), shape.verts.size() * sizeof(GLfloat));
-    program->enableAttributeArray(0);
-    program->setAttributeBuffer(0, GL_FLOAT, 0, shape.tupleSize, shape.stride);
 
+    // get total bytes
+    int nBytes = 0;
+    for (auto attr : shape.attributes)
+        nBytes += attr.data.size();
+    // put into buffer
+    vbo.allocate(nBytes);
+    int offset = 0;
+    for (unsigned int loc = 0; loc < shape.attributes.size(); ++loc)
+    {
+        const Shape::Attribute& attr = shape.attributes[loc];
+        vbo.write(offset, reinterpret_cast<const void*>(attr.data.data()), attr.data.size());
+        program->enableAttributeArray(loc);
+        program->setAttributeBuffer(loc, attr.type, offset, attr.tupleSize, attr.stride);
+        offset += attr.data.size();
+    }
+    // index buffer object
     ibo.create();
     ibo.bind();
     nIndex = shape.indices.size();
@@ -47,6 +60,20 @@ void Painter::initializeGL(const Shape& shape, const std::string &vert, const st
 void Painter::initializeGL(const std::string &vert, const std::string &frag)
 {
     this->initializeGL(Shape::quad(), vert, frag);
+}
+
+void Painter::updateAttributes(const std::vector<Shape::Attribute> &attributes)
+{
+    // the structure needs to be the same
+    // update vbo
+    vbo.bind();
+    int offset = 0;
+    for (unsigned int loc = 0; loc < attributes.size(); ++loc)
+    {
+        const Shape::Attribute& attr = attributes[loc];
+        vbo.write(offset, reinterpret_cast<const void*>(attr.data.data()), attr.data.size());
+        offset += attr.data.size();
+    }
 }
 
 } // namespace
