@@ -21,6 +21,12 @@ public:
     template <typename... Args>
     void paint(Args... args);
 
+    template <typename Loc, typename Val, typename... Args>
+    void setUniforms(Loc location, Val value, Args... args);
+
+    template <typename Loc, typename Val>
+    void setUniform(Loc location, Val value);
+
 private:
     int nIndex;
     QOpenGLVertexArrayObject vao;
@@ -28,8 +34,8 @@ private:
     QOpenGLShaderProgram* program;
 
     template <typename Loc, typename Val, typename... Args>
-    void setUniform(Loc location, Val value, Args... args);
-    void setUniform() {}
+    void setUniformsInternal(Loc location, Val value, Args... args);
+    void setUniformsInternal() {}
 };
 
 // the variadic templated paint function
@@ -37,7 +43,7 @@ template <typename... Args>
 void Painter::paint(Args... args)
 {
     program->bind();
-    setUniform(args...);
+    setUniformsInternal(args...);
     vao.bind();
     glDrawElements(GL_TRIANGLES, nIndex, GL_UNSIGNED_INT, 0);
     vao.release();
@@ -45,10 +51,26 @@ void Painter::paint(Args... args)
 }
 
 template <typename Loc, typename Val, typename... Args>
-void Painter::setUniform(Loc location, Val value, Args... args)
+void Painter::setUniforms(Loc location, Val value, Args... args)
+{
+    program->bind();
+    setUniformsInternal(location, value, args...);
+    program->release();
+}
+
+template <typename Loc, typename Val>
+void Painter::setUniform(Loc location, Val value)
+{
+    program->bind();
+    program->setUniformValue(location, value);
+    program->release();
+}
+
+template <typename Loc, typename Val, typename... Args>
+void Painter::setUniformsInternal(Loc location, Val value, Args... args)
 {
     program->setUniformValue(location, value);
-    setUniform(args...);
+    setUniformsInternal(args...);
 }
 
 } // namespace yy
