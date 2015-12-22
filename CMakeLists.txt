@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
+# get rid of Qt
+
 find_package(OpenGL REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 

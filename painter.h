@@ -9,6 +9,8 @@
 
 namespace yy {
 
+// TODO: make painter to handle binding textures
+
 class Painter
 {
 public:
