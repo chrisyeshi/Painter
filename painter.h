@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include "shape.h"
@@ -44,28 +45,45 @@ private:
 template <typename... Args>
 void Painter::paint(Args... args)
 {
+    auto f = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+    f->initializeOpenGLFunctions();
+    GLint oProg, oVao;
+    f->glGetIntegerv(GL_CURRENT_PROGRAM, &oProg);
     program->bind();
     setUniformsInternal(args...);
+    f->glGetIntegerv(GL_VERTEX_ARRAY_BUFFER_BINDING, &oVao);
     vao.bind();
-    glDrawElements(GL_TRIANGLES, nIndex, GL_UNSIGNED_INT, 0);
+    f->glDrawElements(GL_TRIANGLES, nIndex, GL_UNSIGNED_INT, 0);
     vao.release();
+    f->glBindBuffer(GL_ARRAY_BUFFER, oVao);
     program->release();
+    f->glUseProgram(oProg);
 }
 
 template <typename Loc, typename Val, typename... Args>
 void Painter::setUniforms(Loc location, Val value, Args... args)
 {
+    auto f = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+    f->initializeOpenGLFunctions();
+    GLint oProg;
+    f->glGetIntegerv(GL_CURRENT_PROGRAM, &oProg);
     program->bind();
     setUniformsInternal(location, value, args...);
     program->release();
+    f->glUseProgram(oProg);
 }
 
 template <typename Loc, typename Val>
 void Painter::setUniform(Loc location, Val value)
 {
+    auto f = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+    f->initializeOpenGLFunctions();
+    GLint oProg;
+    f->glGetIntegerv(GL_CURRENT_PROGRAM, &oProg);
     program->bind();
     program->setUniformValue(location, value);
     program->release();
+    f->glUseProgram(oProg);
 }
 
 template <typename Loc, typename Val, typename... Args>
