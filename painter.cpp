@@ -21,14 +21,39 @@ Painter::~Painter()
 
 void Painter::initializeGL(const Shape& shape, const std::string &vert, const std::string &frag)
 {
+    initializeProgram(vert, frag);
+    initializeVAO(shape);
+}
+
+void Painter::initializeGL(const std::string &vert, const std::string &frag)
+{
+    this->initializeGL(Shape::quad(), vert, frag);
+}
+
+void Painter::initializeProgram(const std::string &vert, const std::string &frag)
+{
+    if (program)
+    {
+        delete program;
+        program = nullptr;
+    }
     program = new QOpenGLShaderProgram();
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, vert.c_str());
     program->addShaderFromSourceFile(QOpenGLShader::Fragment, frag.c_str());
     program->link();
+}
 
+void Painter::initializeVAO(const Shape& shape)
+{
+    this->shape = shape;
+
+    if (vao.isCreated())
+        vao.destroy();
     vao.create();
     vao.bind();
 
+    if (vbo.isCreated())
+        vbo.destroy();
     vbo.create();
     vbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
     vbo.bind();
@@ -57,9 +82,27 @@ void Painter::initializeGL(const Shape& shape, const std::string &vert, const st
     vao.release();
 }
 
-void Painter::initializeGL(const std::string &vert, const std::string &frag)
+void Painter::recreateVAO()
 {
-    this->initializeGL(Shape::quad(), vert, frag);
+    if (vao.isCreated())
+        vao.destroy();
+    vao.create();
+    vao.bind();
+
+    vbo.bind();
+
+    int offset = 0;
+    for (unsigned int loc = 0; loc < shape.attributes.size(); ++loc)
+    {
+        const Shape::Attribute& attr = shape.attributes[loc];
+        program->enableAttributeArray(loc);
+        program->setAttributeBuffer(loc, attr.type, offset, attr.tupleSize, attr.stride);
+        offset += attr.data.size();
+    }
+
+    ibo.bind();
+
+    vao.release();
 }
 
 void Painter::updateAttributes(const std::vector<Shape::Attribute> &attributes)

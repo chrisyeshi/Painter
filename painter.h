@@ -20,6 +20,10 @@ public:
 
     void initializeGL(const Shape& shape, const std::string& vert, const std::string& frag);
     void initializeGL(const std::string& vert, const std::string& frag);
+    void initializeProgram(const std::string &vert, const std::string &frag);
+    void initializeVAO(const Shape& shape);
+    // god damn OpenGL doesn't share VAO among contexts, yet it fucking requires us to use VAO!
+    void recreateVAO();
     void updateAttributes(const std::vector<Shape::Attribute>& attributes);
     template <typename... Args>
     void paint(Args... args);
@@ -32,6 +36,7 @@ public:
 
 private:
     int nIndex;
+    Shape shape;
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo, ibo;
     QOpenGLShaderProgram* program;
